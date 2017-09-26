@@ -9,7 +9,9 @@ rp = require('request-promise');
 
 //steps 1,2,3
 module.exports.home = async (req,res,next)=>{    
-    let token = mycache.get("aTempTokenKey");
+    
+    //let token = mycache.get("aTempTokenKey");
+    let token = req.session.token;
     if(token){
     	
     	try{
@@ -33,7 +35,9 @@ module.exports.login = (req,res,next)=>{
     let state = crypto.randomBytes(16).toString('hex');
      
     //Save state and temporarysession for 10 mins
-    mycache.set(state, "aTempSessionValue", 600);
+
+    // mycache.set(state, "aTempSessionValue", 600);
+    mycache.set(state, req.sessionID, 600);
      
     let dbxRedirect= config.DBX_OAUTH_DOMAIN 
             + config.DBX_OAUTH_PATH 
@@ -53,7 +57,9 @@ module.exports.oauthredirect = async (req,res,next)=>{
       } 
 
       let state= req.query.state;
-      if(!mycache.get(state)){
+
+      //if(!mycache.get(state)){
+      if(mycache.get(state)!=req.sessionID){
           return next(new Error("session expired or invalid state"));
       } 
 
@@ -75,8 +81,10 @@ module.exports.oauthredirect = async (req,res,next)=>{
 
               let response = await rp(options);
               
-              //we will replace later cache with a proper storage
-              mycache.set("aTempTokenKey", response.access_token, 3600);
+
+              //mycache.set(tempsession, response.access_token, 3600);
+              await regenerateSessionAsync(req);
+              req.session.token = response.access_token;
               
               res.redirect("/");
 
@@ -86,6 +94,16 @@ module.exports.oauthredirect = async (req,res,next)=>{
       }
 }
 
+
+
+//Returns a promise that fulfills when a new session is created
+var regenerateSessionAsync = (req)=>{
+    return new Promise((resolve,reject)=>{
+            req.session.regenerate((err)=>{
+                err ? reject(err) : resolve();
+        });
+    });
+}
 
 /*Gets temporary links for a set of files in the root folder of the app
 It is a two step process:

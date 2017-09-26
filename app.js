@@ -10,6 +10,27 @@ var users = require('./routes/users');
 
 var app = express();
 
+
+var config = require('./config');
+var redis = require('redis');
+var client = redis.createClient();
+var crypto = require('crypto');
+var session = require('express-session');
+
+app.use(session({
+    secret: config.SESSION_ID_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    genid: (req) => {
+            return crypto.randomBytes(16).toString('hex');;
+          },
+    store: new (require('express-sessions'))({
+        storage: 'redis',
+        instance: client, // optional 
+        collection: 'sessions' // optional 
+    })
+}));
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');

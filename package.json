@@ -10,6 +10,8 @@
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.3",
     "express": "~4.15.2",
+    "express-session": "^1.15.5",
+    "express-sessions": "^1.0.6",
     "hbs": "~4.0.1",
     "morgan": "~1.8.1",
     "node-cache": "^4.1.1",
