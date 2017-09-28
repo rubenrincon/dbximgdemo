@@ -43,8 +43,9 @@ app.use(helmet.contentSecurityPolicy({
 
 
 //initialize session
-app.use(session({
+var sess = {
     secret: config.SESSION_ID_SECRET,
+    cookie: {},
     resave: false,
     saveUninitialized: true,
     genid: (req) => {
@@ -55,12 +56,14 @@ app.use(session({
         instance: client, // optional 
         collection: 'sessions' // optional 
     })
-}));
+}
 
 //cookie security for production: only via https
 if (app.get('env') === 'production') {
-  session.cookie.secure = true // serve secure cookies
+  sess.cookie.secure = true // serve secure cookies
 }
+
+app.use(session(sess));
 
 
 // view engine setup
