@@ -17,7 +17,7 @@ module.exports.home = async (req,res,next)=>{
     	try{
 
     		let paths = await getLinksAsync(token); 
-    		res.render('gallery', { imgs: paths });
+    		res.render('gallery', { imgs: paths, layout:false});
 
     	}catch(error){
     		return next(new Error("Error getting images from Dropbox"));
