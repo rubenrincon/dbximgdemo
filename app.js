@@ -17,6 +17,32 @@ var client = require('redis').createClient(process.env.REDIS_URL);
 var crypto = require('crypto');
 var session = require('express-session');
 
+
+var helmet = require('helmet');
+
+//Headers security!!
+app.use(helmet());
+
+// Implement CSP with Helmet 
+
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "'unsafe-inline'","https://ajax.googleapis.com/"],
+    styleSrc: ["'self'","'unsafe-inline'"], 
+    imgSrc: ["'self'","https://dl.dropboxusercontent.com"],  
+    mediaSrc: ["'none'"],  
+    frameSrc: ["'none'"]  
+  },
+
+    // Set to true if you want to blindly set all headers: Content-Security-Policy, 
+    // X-WebKit-CSP, and X-Content-Security-Policy. 
+    setAllHeaders: true
+
+}));
+
+
+//initialize session
 app.use(session({
     secret: config.SESSION_ID_SECRET,
     resave: false,
@@ -30,6 +56,12 @@ app.use(session({
         collection: 'sessions' // optional 
     })
 }));
+
+//cookie security for production: only via https
+if (app.get('env') === 'production') {
+  session.cookie.secure = true // serve secure cookies
+}
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
