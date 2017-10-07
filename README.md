@@ -23,7 +23,7 @@ The Web Service we will implement, will allow users to nicely display on a galle
 Dropbox API has two types of permissions, Full Dropbox access or Folder access.  For the sake of security (and your trust), we are only using the second (Folder access), so the middleware is only allowed to read/write to a specific folder on the users Dropbox account and nothing else.  
  
 
-# Node.JS and Express
+# 1.  Node.JS and Express
 
 The great thing with Node is that you can write server code using JavaScript.  Nonetheless, the Web Service needs some structure and a separation of the back end and the front end code as well as any public resource. Express will help exactly with that.
  
@@ -75,7 +75,7 @@ Go to your browser and enter [http://localhost:3000](http://localhost:3000) on t
 
 ![Bare Express server running](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1504713272010_Picture2.png)
 
-# Front end and back end
+# 2.  Front end and back end
 
 Before continuing with the code, it is important to set some additional structure to our project to have a clean separation of responsibilities.
 
@@ -182,9 +182,7 @@ You can see in the body part that we iterate through the `imgs` object passed cr
 
  
 
-
-## 🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/frontendonly)
-
+🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/frontendonly)
  
  
 Now let us run the server with
@@ -200,10 +198,7 @@ And in your browser navigate to [http://localhost:3000](http://localhost:3000/ga
 Now that we have our front end running.  Let us do the back end part, which is the main focus of this tutorial.  
 
 
-# Back end
-
-
-## Dropbox
+# 3.  Dropbox app
 
 We want to access the Dropbox folder of a user who authorizes the middleware to read it and populate a gallery. 
  
@@ -226,7 +221,7 @@ After this, you want to also enable additional users in this app, otherwise only
 
  
 
-# OAuth with authorization code grant flow
+# 4.  OAuth with authorization code grant flow
 
  
 This application should be able to read a specific app folder for any Dropbox user who consents.  For this we need to build an authentication flow where user is redirected to Dropbox to enter credentials and then authorize this app to read users Dropbox.  After this is done, a folder inside Dropbox will be created with the name of this app and the middleware will be able to access the contents of that folder only. 
@@ -430,7 +425,7 @@ You should see again the gallery with the mock images displaying correctly.
 
 
 
-# Fetching images from Dropbox
+# 5.  Fetching images from Dropbox
 
 Now that we are able to see a gallery of images.  We want to read the images from Dropbox.
 After the user authorizes the application to read a folder in Dropbox, a folder will be created within the ***Apps*** folder with the name of this app, in this case ***dbximgs demo***.  If the ***Apps*** folder didn’t exist before, it will be created.  So go ahead and populate that folder with some images you want.  For security purposes we will use temporary links that are valid only for 4 hours.
@@ -564,11 +559,10 @@ You can run the server and test it.  You should be able to see the images from t
 👁️ Make sure you have images in the folder created after you login to Dropbox and authorize the application.
 
 
-## 🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/backendnosession)
-
+🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/backendnosession)
  
 
-# Cookies, sessions and Redis database
+# 6.  Cookies, sessions and Redis database
 
 Until now, we use a hardcoded session in the `/login` endpoint.  We are going to make several changes for the sake of security and it comes with three Web dev components: cookies, sessions and a session store.
 
@@ -604,7 +598,7 @@ We will also need the following Node libraries
 [**express-sessions**](https://www.npmjs.com/package/express-sessions)**:**  Node library that wraps the session store
 [**redis**](https://www.npmjs.com/package/redis)**:**  Node library to manipulate redis
 
-so run the following commands
+so run the following commands:
 
     npm install express-sessions express-session redis --save
 
@@ -689,11 +683,10 @@ Finally,  we will make 5 changes in the controller: 1 in the login method,  1 in
 
 
 And you can now run with `npm start`
+🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/backendwithsession)
 
-## 🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/backendwithsession)
 
-
-# Deploying to Heroku
+# 7.  Deploying to Heroku
 
 **⚠️  While you will not be charged anything for following any of the steps below, provisioning the Redis database addin requires you to have a credit card on file on Heroku.  But again,** **we will be using only free tiers.**
 
@@ -851,11 +844,14 @@ You can see it yourself in the settings page of the Heroku app if you click on R
 8.  Seems we have all the elements in place to push the magic button.  (make sure you are logged to Heroku in your console, otherwise run the `heroku login` command at the root level of your project.
 
 
+
     git add --all
     git commit -m "Heroku ready code"
     git push heroku master
 
+
 which will start the deploy and will show you something like this
+
 
 ![](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1506559865116_Screen+Shot+2017-09-27+at+9.30.59+AM.png)
 
@@ -884,11 +880,10 @@ It will be something like this
 
 
 👁️ Remember to add some images to the folder if the Dropbox account you are linking is new.  Otherwise, you will simply see a sad white page.
+🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/herokuready)
 
-## 🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/herokuready)
 
-
-# Security considerations and actions
+# 8.  Security considerations and actions
 
 In general, there are a set of security measures we can take to protect our app. I am checking the ones we have already implemented.
 
@@ -905,12 +900,13 @@ In general, there are a set of security measures we can take to protect our app.
 - 🔴 Cookies:  make sure cookies are transported only via https.  😱 we will fix it later.
 
 **Securing headers**
-Good information in [this blog post](https://blog.risingstack.com/node-js-security-checklist/), but here is the summary of what we should care about.
-🔴 **Strict-Transport-Security** enforces secure (HTTP over SSL/TLS) connections to the server
-🔴 **X-Frame-Options**  protection against clickjacking or disallowing to be iframed on another site.
-🔴 **X-XSS-Protection**  Cross-site scripting (XSS) filter 
-🔴 **X-Content-Type-Options** prevents browsers from MIME-sniffing a response away from the declared content-type
-🔴 **Content-Security-Policy** prevents a wide range of attacks, including Cross-site scripting and other cross-site injections
+
+- Good information in [this blog post](https://blog.risingstack.com/node-js-security-checklist/), but here is the summary of what we should care about.
+- 🔴 **Strict-Transport-Security** enforces secure (HTTP over SSL/TLS) connections to the server
+- 🔴 **X-Frame-Options**  protection against clickjacking or disallowing to be iframed on another site.
+- 🔴 **X-XSS-Protection**  Cross-site scripting (XSS) filter 
+- 🔴 **X-Content-Type-Options** prevents browsers from MIME-sniffing a response away from the declared content-type
+- 🔴 **Content-Security-Policy** prevents a wide range of attacks, including Cross-site scripting and other cross-site injections
 
 The blogpost above has more security considerations if you intend to go deeper on the topic.
 
@@ -948,7 +944,8 @@ And add the following code to the app.js file to set the headers.  Notice that w
     }));
 
 With this we have secured the headers now 🤠 
-💚 Securing headers
+
+- 💚 Securing headers
 
 Let us know fix the cookie transport issue.  The best thing to do here is to enable http for development purposes and only allow https for production.  Development and production can be set with the NODE_ENV env variable.   Heroku is by defauld set to production, the local host is development by default.  You can modify this behavior [following these steps](https://devcenter.heroku.com/articles/nodejs-support#devdependencies)
 
@@ -983,7 +980,8 @@ Change the whole session initialization in the apps.js file to look like the cod
 It is important to do the *trust the first proxy* for Heroku as any requests enters via https to Heroku but the direct internal call to our middleware is http via some load balancer.
 
  And we are done! 👊 
-💚 Cookies:  make sure cookies are transported only via https
+
+- 💚 Cookies:  make sure cookies are transported only via https
 
  Now you want to push this to heroku
 
@@ -992,8 +990,7 @@ It is important to do the *trust the first proxy* for Heroku as any requests ent
     git push heroku master 
 
  
-
-## 🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/herokusecure)
+🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/herokusecure)
 
 
 ## checking dependency vulnerabilities
@@ -1018,7 +1015,7 @@ As with Heroku we don’t actually push the **node_modules** package, it makes s
 If the vulnerability is in a library within one of your projects dependencies, check if updating the dependency will fix the issue.  Otherwise you have three options:  accept the risk of keeping it, replace the library for a similar without the vulnerability or finally, patch it yourself and then actually push all the libraries to Heroku yourself.
 
 
-# Production and things to do from here
+# 9.  Production and things to do from here
 
 This is a small list of things you would also want to make sure are done for a production-ready service of this tutorial.
 
@@ -1036,4 +1033,5 @@ You could make that error page look nicer.
 # Other…
 
 some [dog images](http://www.bing.com/images/search?&q=dogs+images&qft=+filterui:license-L2_L3_L5_L6&FORM=R5IR44) in case they are useful to you 
+
 
