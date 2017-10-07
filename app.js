@@ -6,13 +6,10 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var index = require('./routes/index');
-var users = require('./routes/users');
-
 var app = express();
 
 
 var config = require('./config');
-var redis = require('redis');
 var client = require('redis').createClient(process.env.REDIS_URL);
 var crypto = require('crypto');
 var session = require('express-session');
@@ -24,7 +21,6 @@ var helmet = require('helmet');
 app.use(helmet());
 
 // Implement CSP with Helmet 
-
 app.use(helmet.contentSecurityPolicy({
   directives: {
     defaultSrc: ["'self'"],
@@ -53,8 +49,8 @@ var sess = {
           },
     store: new (require('express-sessions'))({
         storage: 'redis',
-        instance: client, // optional 
-        collection: 'sessions' // optional 
+        instance: client,  
+        collection: 'sessions'  
     })
 }
 

@@ -14,7 +14,7 @@ These are the main technologies and concepts we will cover:
 - OAuth Authentication
 - Cookies and Sessions
 - Heroku
-- Heroku addons
+- Heroku addins
 - Security on Node.JS
 
  
@@ -75,7 +75,7 @@ Go to your browser and enter [http://localhost:3000](http://localhost:3000) on t
 
 ![Bare Express server running](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1504713272010_Picture2.png)
 
-# Front-end and back end
+# Front end and back end
 
 Before continuing with the code, it is important to set some additional structure to our project to have a clean separation of responsibilities.
 
@@ -205,20 +205,20 @@ Now that we have our front end running.  Let us do the back end part, which is t
 
 ## Dropbox
 
-What we want to do is access a Dropbox folder of a user who authorizes this app to read it and populate that gallery. 
+We want to access the Dropbox folder of a user who authorizes the middleware to read it and populate a gallery. 
  
-To do this, we will first need to create a Dropbox app, and for that you need a Dropbox account.  If you don’t have one, create one first and then go to [https://www.dropbox.com/developers/apps](https://www.dropbox.com/developers/apps)
+To do this, we will first need to create a Dropbox app.  For that you need a Dropbox account.  If you don’t have one, create one first and then go to [https://www.dropbox.com/developers/apps](https://www.dropbox.com/developers/apps)
 And click on **Create App**
 
-Then choose Dropbox API, App Folder,  put a name on your app and click on create app.
+Then choose Dropbox API, App Folder,  put a name on your app and click on **Create App.**
  
 
 ![Dropbox developer console](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1504744388551_Picture5.png)
 
 
-We chose **App folder** permission so we can only read and write to a single folder to those users who authorize this app.
+We chose **App folder** permission so the middleware can only read and write to a single folder to those users who authorize the app.
  
-After this, you want to also enable additional users in this app, otherwise only you can use it.  In the settings page of your app you will find a button to do this.  Press it.
+After this, you want to also enable additional users in this app, otherwise only you can use it.  In the settings page of your app you will find a button to do this.  
  
 
 ![Enabling additional users for Dropbox app](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1504744450739_Picture6.png)
@@ -231,11 +231,11 @@ After this, you want to also enable additional users in this app, otherwise only
  
 This application should be able to read a specific app folder for any Dropbox user who consents.  For this we need to build an authentication flow where user is redirected to Dropbox to enter credentials and then authorize this app to read users Dropbox.  After this is done, a folder inside Dropbox will be created with the name of this app and the middleware will be able to access the contents of that folder only. 
 
-The most secure way to do this is using an ***authorization code flow.***  In this flow, after the authorization step, Dropbox issues a code to the user that is exchanged for a token via the middleware.  The middleware stores the token and is never visible to the web browser.  To know who is the user requesting the token, we use a session.  At first,  we will simply use a hardcoded session value and save it in a cache, but later we will replace it with a proper library to manage sessions and cookies and will be stored on a persistent database.
+The most secure way to do this is using an ***authorization code flow.***  In this flow, after the authorization step, Dropbox issues a code to the middleware that is exchanged for a token.  The middleware stores the token and is never visible to the Web browser.  To know who is the user requesting the token, we use a session.  At first,  we will simply use a hardcoded session value and save it in a cache, but later we will replace it with a proper library to manage sessions and cookies and will be stored on a persistent database.
 
 Before writing any code, we need to do an important configuration step in Dropbox:
  
-Pre-register a redirect URL in the Dropbox admin console.  Temporarily we will use a localhost endpoint which is the only permitted http URL.  For anything different to home, you need to use a https.  We will use a `/oauthredirect` endpoint.  So enter the URL [http://localhost:3000/](http://localhost:3000/dbxlogin)oauthredirect and press the **Add** button.  
+Pre-register a redirect URL in the Dropbox admin console.  Temporarily we will use a localhost endpoint which is the only permitted http URL.  For anything different to home, you need to use https.  We will use a `/oauthredirect` endpoint.  So enter the URL [http://localhost:3000/](http://localhost:3000/dbxlogin)oauthredirect and press the **Add** button.  
  
 Also we we will not use implicit grant, so you can disable it.  
  
@@ -270,18 +270,18 @@ First we need a number of configuration items in the **config.js** file at the r
  **config.js**
 
     module.exports = {
-          DBX_API_DOMAIN: 'https://api.dropboxapi.com',
-          DBX_OAUTH_DOMAIN: 'https://www.dropbox.com',
-          DBX_OAUTH_PATH: '/oauth2/authorize',
-          DBX_TOKEN_PATH: '/oauth2/token',
-          DBX_APP_KEY:'<appkey_in_dropbox_console>',
-          DBX_APP_SECRET:'<appsecret_in_dropbox_console>', 
-          OAUTH_REDIRECT_URL:"http://localhost:3000/oauthredirect",
+      DBX_API_DOMAIN: 'https://api.dropboxapi.com',
+      DBX_OAUTH_DOMAIN: 'https://www.dropbox.com',
+      DBX_OAUTH_PATH: '/oauth2/authorize',
+      DBX_TOKEN_PATH: '/oauth2/token',
+      DBX_APP_KEY:'<appkey_in_dropbox_console>',
+      DBX_APP_SECRET:'<appsecret_in_dropbox_console>', 
+      OAUTH_REDIRECT_URL:"http://localhost:3000/oauthredirect",
     }
 
  
 
-Now let’s add the business logic.  To create a random state we will use the crypto library (which is part of Node) and to temporarily store it  in a cache, we will use node-cache library.  The node-cache simply receives a key/pair and an expire in a number of seconds.  We will arbitrarily set it to 10 mins = 600 seconds.
+Now let’s add the business logic.  To create a random state we will use the crypto library (which is part of Node) and to temporarily store it  in a cache, we will use node-cache library.  The node-cache simply receives a key/value pair and an expire it in a number of seconds.  We will arbitrarily set it to 10 mins = 600 seconds.
  
 Let us first install the node-cache library
  
@@ -289,9 +289,9 @@ Let us first install the node-cache library
     npm install node-cache --save
 
  
-
+💡  The `--save` adds a dependency in the package.json file.
+ 
 For the steps 1,2 and 3 in the flow above, modify the *home* method in the **controller**.**js**  If there is no token, we redirect to the  `/login` endpoint passing a temporary session in the query. Remember we will change this for  a session library later.
-
  
 **controller.js**
 
@@ -331,47 +331,43 @@ For the steps 1,2 and 3 in the flow above, modify the *home* method in the **con
     }
 
 
-Now we need to list the login endpoint in the **routes/index.js** 
-In the routes/index.js, add the following line:
+Now we need to list the login endpoint in the **routes/index.js** , so add the following line.
 
 **routes/index.js** 
 
     router.get('/login', controller.login);
-
 
 At this point, you can test it again by running
 
 
     npm start
 
-and hitting http://localhost:3000
-
-which should forward to an authentication/authorization page like this
+and hitting http://localhost:3000 should forward to an authentication/authorization page like this
 
 
-![](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1504746976695_Screen+Shot+2017-09-06+at+6.15.33+PM.png)
+![AOuth Authorization page](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1504746976695_Screen+Shot+2017-09-06+at+6.15.33+PM.png)
 
 
-Once you authorize, you will see an error as we have not added an endpoint to be redirected back, but take a look at the url; you will see there the state you sent and the code from Dropbox that you will use to get a token .
+Once you authorize, you will see an error as we have not added an endpoint to be redirected back, but take a look at the url, you will see there the **state** you sent and the **code** from Dropbox that you will use to get a token .
 
 
-![](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1506439372012_Screen+Shot+2017-09-26+at+8.20.14+AM.png)
+![Redirect URL](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1506439372012_Screen+Shot+2017-09-26+at+8.20.14+AM.png)
 
 ## Exchanging code for token
 
-When Dropbox redirects to our middleware, there are two possible outcomes:
+When Dropbox redirects to the middleware, there are two possible outcomes:
 
-- A successful call will include a **code** and a state
+- A successful call will include a **code** and a **state**
 - An error call will include an **error_description** query parameter  
 
-In the success case, we will exchange the code by a token via a POST call to the **/oauth2/token** call in Dropbox.  To make that call we will use the **request-promise** library, which is a wrapper to the **request** library and adding promise capabilities on top of it.
+In the success case, we will exchange the code by a token via a POST call to the **/oauth2/token** call in Dropbox.  To make that call we will use the **request-promise** library, which is a wrapper to the **request** library adding promise capabilities on top of it.
 
 Let us first install the request-promise and request libraries with the following command
 
 
     npm install request request-promise --save
 
-Now add one more method to the controller with the logic to exchange the code via the Dropbox API.  Once the token is obtained we will temporarily save it on cache and redirect to our home path.
+Now add one more method to the controller with the logic to exchange the code via the Dropbox API.  Once the token is obtained we will temporarily save it on cache and redirect to the home path.
 
 **controller.js**
 
@@ -418,7 +414,7 @@ Now add one more method to the controller with the logic to exchange the code vi
       }
     }
 
-The beauty of using the **request-promise** library and ES7 **async await** is that we can write our code as if it was all synchronous while this code will not actually block our server.  The **await** indicator will simply yield until the `rp(options)` call has a returned a value (or error) and then it will be picked up again.  Notice that the method has to be marked **async** for this to work.  If the promise fails, it will be captured by the catch and we pass it to the app to handle it, so it is pretty safe.
+The beauty of using the **request-promise** library and ES7 **async await** is that we can write our code as if it was all synchronous while this code will not actually block the server.  The **await** indicator will simply yield until the `rp(options)` call has a returned a value (or error) and then it will be picked up again.  Notice that the function has to be marked **async** for this to work.  If the promise fails, it will be captured by the catch and we pass it to the app to handle it, so it is pretty safe.
 
 💡 If you have any questions on how the options for the request are formed, you can check the [request](https://www.npmjs.com/package/request) documentation.
 💡 If you wan to know more about async await this is a [good source](https://strongloop.com/strongblog/async-error-handling-expressjs-es7-promises-generators/)
@@ -437,7 +433,7 @@ You should see again the gallery with the mock images displaying correctly.
 # Fetching images from Dropbox
 
 Now that we are able to see a gallery of images.  We want to read the images from Dropbox.
-After the user authorizes the application to read a folder in Dropbox, a folder will be created within the ***Apps*** folder with the name of this app, in this case ***dbximgs demo***.  If the ***Apps*** folder didn’t exist before it will be created.  So go ahead and populate that folder with some images you want.  For security purposes we will use temporary links that are valid only for 4 hours.
+After the user authorizes the application to read a folder in Dropbox, a folder will be created within the ***Apps*** folder with the name of this app, in this case ***dbximgs demo***.  If the ***Apps*** folder didn’t exist before, it will be created.  So go ahead and populate that folder with some images you want.  For security purposes we will use temporary links that are valid only for 4 hours.
 
 Now we need to make a call to the Dropbox API to fetch temporary links for those images. We will follow these steps:
 
@@ -574,11 +570,11 @@ You can run the server and test it.  You should be able to see the images from t
 
 # Cookies, sessions and Redis database
 
-Until now, we use a hardcoded session in the `/login` endpoint.  We are going to make several changes for the sake of security and it comes with three Web dev components, cookies, sessions and a session store.
+Until now, we use a hardcoded session in the `/login` endpoint.  We are going to make several changes for the sake of security and it comes with three Web dev components: cookies, sessions and a session store.
 
 **Cookies:**  data stored as plain text on the users browser.  In our case it will be a sessionID.
 **Session**:  set of data that contains current status of a user as well as a token to access Dropbox resources.  Identified via sessionID.
-**Session store:**  where sessions are stored.  We use Redis as this is a super fast, lean and popular key value storage.
+**Session store:**  where sessions are stored.  We use Redis as this is a fast, lean and popular key value storage.
 
 Our new flow will be something like this:
 
@@ -602,7 +598,7 @@ You don’t need to worry about configuration as this is only a local test insta
 ![](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1505834587527_Screen+Shot+2017-09-19+at+8.22.45+AM.png)
 
 
-We will also need the following libraries
+We will also need the following Node libraries
 
 [**express-session**](https://www.npmjs.com/package/express-session)**:**  Node library to manage sessions
 [**express-sessions**](https://www.npmjs.com/package/express-sessions)**:**  Node library that wraps the session store
@@ -645,7 +641,7 @@ And now initialize the libraries in the app.js file where any middleware gets co
 Finally,  we will make 5 changes in the controller: 1 in the login method,  1 in the home method, 2 in the oauthredirect method and we will also add a new method to regenerate a session.
 
 
-1.  We save now in the cache the sessionID instead of a hardcoded value
+1.  We save now in the cache the sessionID instead of a hardcoded value.
 
 **controller.js login method**
 
@@ -653,7 +649,7 @@ Finally,  we will make 5 changes in the controller: 1 in the login method,  1 in
       mycache.set(state, req.sessionID, 600);
 
 
-2. Instead of reading the token from cache, read it from the session
+2. Instead of reading the token from cache, read it from the session.
 
 **controller.js home method**
 
@@ -661,7 +657,7 @@ Finally,  we will make 5 changes in the controller: 1 in the login method,  1 in
     let token = req.session.token;
 
 
-3.  In the oauthredirect, now we actually make sure that the state we saved is the same we stored
+3.  In the oauthredirect, now we actually make sure that the state value we have just received from Dropbox is the same we previously stored.
 
 **controller.js** oauthredirect **method**
 
@@ -678,7 +674,7 @@ Finally,  we will make 5 changes in the controller: 1 in the login method,  1 in
     req.session.token = response.access_token;
 
 
-5. Now we implement the regenerateSessionAsync method.  This method simply wraps the generation of the session in a Promise.  We do this because we don’t want to mix awaits and callbacks.  If we had to do this more often we would use a wrapping library, but this is the only time, so we do it in the rough way.   💡 you can read more [here](https://strongloop.com/strongblog/async-error-handling-expressjs-es7-promises-generators/)
+5. Now we implement the regenerateSessionAsync method.  This method simply wraps the generation of the session in a Promise.  We do this because we don’t want to mix awaits and callbacks.  If we had to do this more often we would use a wrapping library, but this is the only time, so we do it in the rough way.   💡 you can read more about asynchronous calls [here](https://strongloop.com/strongblog/async-error-handling-expressjs-es7-promises-generators/)
 
 **controller.js** regenerateSessionAsync **method**
 
@@ -719,7 +715,7 @@ Once you create the app, you are pretty much given the instructions to put the c
     heroku login
 
 
-2.  A the root level of your project, initialize a git repository
+2.  A the root level of your project, initialize a git repository.  Make sure you use your own project name.
     git init
     heroku git:remote -a dbximgs
 
@@ -739,7 +735,7 @@ Once you create the app, you are pretty much given the instructions to put the c
 
 4.  There is information that should not be hardcoded in the source code like the Dropbox client/secret and also the Redis secret.  Also, there are items that should be configured for a local test vs server production such as the redirectURL of the OAuth flow.    There are several ways to work on this, like the *Heroku local* command, but to have independence of Heroku for local testing, we will use the **dotenv** library which is not much different.
 
-This library pushes a set of environment variables when the server starts from a **.env** file if found.  We will have a .env file only in the local environment but we will not push it to Heroku as stated in the .gitignore above.  Heroku instead uses configuration variables to feed the same information.. 
+This library pushes a set of environment variables when the server starts from a **.env** file if found.  We will have a .env file only in the local environment but we will not push it to Heroku as stated in the .gitignore above.  Heroku instead uses configuration variables to feed the same information. 
 
 First, let us install the dotenv library
 
@@ -795,13 +791,13 @@ Then manually add the variables with the proper values
 
 
 
-6.  When you deploy your app to Heroku, it installs all the libraries and dependencies from your package.json file, but the problem we will see is that Node.js itself might be a version not compatible yet with elements of ES7 we put in our code like the async/await calls.  To avoid this, we need to set the Node.JS dependency in the package.json file.  For this add the following lines right before the **dependencies**
+6.  When you deploy your app to Heroku, it installs all the libraries and dependencies from your package.json file, but the problem we will see is that Node.JS itself might be a version not compatible yet with elements of ES7 we put in our code like the async/await calls.  To avoid this, we need to set the Node.JS dependency in the package.json file.  For this add the following lines right before the **dependencies**
 
 **package.json**
 
-      "engines": {
-        "node": "~8.2.1"
-      },
+    "engines": {
+      "node": "~8.2.1"
+    },
 
 It will look something like this
 **package.json**
@@ -852,7 +848,7 @@ There is one more step you need to change in your code for Redis to work. You ne
 You can see it yourself in the settings page of the Heroku app if you click on Reveal config vars
 
 
-8.  Seems we have all the elements in place to push the magic button.  (make sure you are logged to heroku in your console, otherwise run the `heroku login` command at the root level of your project.
+8.  Seems we have all the elements in place to push the magic button.  (make sure you are logged to Heroku in your console, otherwise run the `heroku login` command at the root level of your project.
 
 
     git add --all
@@ -876,7 +872,7 @@ Something like this means things are working fine
 
 9.  You can now go and test your app!!  🤡 
 
-If you are not sure of the link, you can start it from the Heroku console using the Open App button
+If you are not sure of the link, you can start it from the Heroku console using the Open App button.  Or run the `heroku open` command in the console.
 
 
 ![](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1506560336013_Screen+Shot+2017-09-27+at+5.58.35+PM.png)
@@ -898,33 +894,33 @@ In general, there are a set of security measures we can take to protect our app.
 
 **Oauth**
 
-[x] OAuth code flow where token is not exposed to the Web browser
-[x] Check state parameter on the OAuth flow to avoid CSRF 
-[x] Store token on a fresh session (regenerate the session)
+- 💚 OAuth code flow where token is not exposed to the Web browser
+- 💚 Check state parameter on the OAuth flow to avoid CSRF 
+- 💚 Store token on a fresh session (regenerate the session)
 
 **Cookies**
 
-[x] Cookies:  disabling scripts to read/write cookies from browser in the session configuration
-[x] Cookies:  enforcing same domain origin (default on the session configuration)
-[ ] Cookies:  make sure cookies are transported only via https.  😱 we will fix it later.
+- 💚 Cookies:  disabling scripts to read/write cookies from browser in the session configuration
+- 💚 Cookies:  enforcing same domain origin (default on the session configuration)
+- 🔴 Cookies:  make sure cookies are transported only via https.  😱 we will fix it later.
 
 **Securing headers**
 Good information in [this blog post](https://blog.risingstack.com/node-js-security-checklist/), but here is the summary of what we should care about.
-
-[ ] **Strict-Transport-Security** enforces secure (HTTP over SSL/TLS) connections to the server
-[ ] **X-Frame-Options**  protection against clickjacking or disallowing to be iframed on another site.
-[ ] **X-XSS-Protection**  Cross-site scripting (XSS) filter 
-[ ] **X-Content-Type-Options** prevents browsers from MIME-sniffing a response away from the declared content-type
-[ ] **Content-Security-Policy** prevents a wide range of attacks, including Cross-site scripting and other cross-site injections
+🔴 **Strict-Transport-Security** enforces secure (HTTP over SSL/TLS) connections to the server
+🔴 **X-Frame-Options**  protection against clickjacking or disallowing to be iframed on another site.
+🔴 **X-XSS-Protection**  Cross-site scripting (XSS) filter 
+🔴 **X-Content-Type-Options** prevents browsers from MIME-sniffing a response away from the declared content-type
+🔴 **Content-Security-Policy** prevents a wide range of attacks, including Cross-site scripting and other cross-site injections
 
 The blogpost above has more security considerations if you intend to go deeper on the topic.
 
-To secure the headers above, we will use the [helmet](https://www.npmjs.com/package/helmet) library.  We will talk about the cookie a bit later.  This is also a [good blog post to read about helmet](http://scottksmith.com/blog/2014/09/21/protect-your-node-apps-noggin-with-helmet/)
+To secure the headers above, we will use the [helmet](https://www.npmjs.com/package/helmet) library.  
+💡 This is a [good blog post to read about helmet](http://scottksmith.com/blog/2014/09/21/protect-your-node-apps-noggin-with-helmet/)
 
 
     npm install helmet --save
 
-And add the following code to the app.js file to set the headers.  Notice that we are only allowing scripts from the ajax.googleapis this is where we find the jQuery library.  Another option is to simply copy the file locally, change the reference in the page.js.
+And add the following code to the app.js file to set the headers.  Notice that we are only allowing scripts from the ajax.googleapi (this is where we find the jQuery library).  Another option is to simply copy the file locally, for that, change the reference in the page.js.
 
 **app.js**
 
@@ -952,12 +948,11 @@ And add the following code to the app.js file to set the headers.  Notice that w
     }));
 
 With this we have secured the headers now 🤠 
+💚 Securing headers
 
-[x] Securing headers
+Let us know fix the cookie transport issue.  The best thing to do here is to enable http for development purposes and only allow https for production.  Development and production can be set with the NODE_ENV env variable.   Heroku is by defauld set to production, the local host is development by default.  You can modify this behavior [following these steps](https://devcenter.heroku.com/articles/nodejs-support#devdependencies)
 
-Let us know fix the cookie transport issue.  The best thing to do here is to enable http for development purposes and only allow https for production.  Development and production can be set with the NODE_ENV env variable.   Heroku is by defauld set to production, in our local host it is development by default.  You can modify this behavior [following this steps](https://devcenter.heroku.com/articles/nodejs-support#devdependencies)
-
-Change the whole session initialization in the apps.js file to look like this  (you can see the whole source code below).  I highlighted the main changes
+Change the whole session initialization in the apps.js file to look like the code below.  I highlighted the main changes
 
 **app.js**
 
@@ -988,8 +983,7 @@ Change the whole session initialization in the apps.js file to look like this  (
 It is important to do the *trust the first proxy* for Heroku as any requests enters via https to Heroku but the direct internal call to our middleware is http via some load balancer.
 
  And we are done! 👊 
-
-[x]  Cookies:  make sure cookies are transported only via https
+💚 Cookies:  make sure cookies are transported only via https
 
  Now you want to push this to heroku
 
@@ -1004,7 +998,7 @@ It is important to do the *trust the first proxy* for Heroku as any requests ent
 
 ## checking dependency vulnerabilities
 
-The great thing about Node.JS is that you usually find a library that does exactly what you want.  But it comes to a great cost, libraries get outdated and then you find yourself in 🔥 library hell 🔥 when they have specific vulnerabilities that get patched.  Think about it, you have dependencies that have dependencies and suddenly you have hundreds of dependencies and libraries that might be outdated and vulnerable.
+The great thing about Node.JS is that you usually find a library that does exactly what you want.  But it comes to a great cost, libraries get outdated and then you find yourself in 🔥 *library hell* 🔥 when they have specific vulnerabilities that get patched.  Think about it, you have dependencies that have dependencies and suddenly you have hundreds of dependencies and libraries that might be outdated and vulnerable.
 
 A good way to check you are protected against vulnerabilities to specific dependencies in your code is the `nsp check` command.  It will tell you which libraries have been compromised, what are the patched versions, where to find them and the version you have.
 
@@ -1019,14 +1013,14 @@ and you will get a bunch of tables that look like this
 ![](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1506616546659_Screen+Shot+2017-09-28+at+9.35.27+AM.png)
 
 
-As with Heroku we don’t actually push the **node_modules** package, it makes sense to patch those files that are directly stated in the **package.json** file by simply changing the version required.  But make sure you test in case there were major changes for that dependency.  Every time you push your code to Heroku, it runs the `npm install` command recreating the package.
+As with Heroku we don’t actually push the **node_modules** package, it makes sense to patch those files that are directly stated in the **package.json** file by simply changing the version required.  But make sure you test in case there were major changes for that dependency.  Every time you push your code to Heroku, it runs the `npm install` command recreating the node_modules folder.
 
-If the vulnerability is in a library within one of your projects dependencies, check if updating the dependency will fix the issue.  Otherwise you have three options:  accept the risk of keeping it, replace the library for a similar without the vulnerability or finally, patch it yourself and then actually pushing all the libraries to Heroku yourself.
+If the vulnerability is in a library within one of your projects dependencies, check if updating the dependency will fix the issue.  Otherwise you have three options:  accept the risk of keeping it, replace the library for a similar without the vulnerability or finally, patch it yourself and then actually push all the libraries to Heroku yourself.
 
 
 # Production and things to do from here
 
-This is a small list of things you would also want to make sure are done for a production-ready service.
+This is a small list of things you would also want to make sure are done for a production-ready service of this tutorial.
 
 
 1.  Manage the errors:  for this tutorial, all the errors will be propagated to the app.js page that will set the right error code on the http response and display the error template.
@@ -1038,9 +1032,8 @@ You could make that error page look nicer.
 2.  Remove unused files like extra files added by express never used.
 3. The front end was barely worked, you can make it look much nicer if you want.
 4.  Add app icons to the Dropbox page so the authorization looks better.
-5. Probably the most important one will be pagination on the images.  You can call Dropbox specifying a number of items you want back.  Then Dropbox will give you a cursor to iterate.  I thought that adding that will just make this tutorial much longer, so that’s a good task for you if you want to extend it.
+5. Probably the most important one will be pagination on the images.  You can call Dropbox specifying a number of items you want back.  Then Dropbox will give you a cursor to iterate.  I thought that adding that will just make this tutorial much longer, so that’s a good task for you if you want to extend it… or maybe I’ll just do it later.
+# Other…
 
-
-dog images
-http://www.bing.com/images/search?&q=dogs+images&qft=+filterui:license-L2_L3_L5_L6&FORM=R5IR44
+some [dog images](http://www.bing.com/images/search?&q=dogs+images&qft=+filterui:license-L2_L3_L5_L6&FORM=R5IR44) in case they are useful to you 
 
