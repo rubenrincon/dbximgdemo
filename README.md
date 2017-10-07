@@ -682,7 +682,7 @@ Finally,  we will make 5 changes in the controller: 1 in the login method,  1 in
     }
 
 
-And you can now run with `npm start`
+And you can now run with `npm start`.
 🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/backendwithsession)
 
 
@@ -843,7 +843,7 @@ You can see it yourself in the settings page of the Heroku app if you click on R
 
 8.  Seems we have all the elements in place to push the magic button.  (make sure you are logged to Heroku in your console, otherwise run the `heroku login` command at the root level of your project.
 
-
+now run
 
     git add --all
     git commit -m "Heroku ready code"
