@@ -582,10 +582,10 @@ Our new flow will be something like this:
 **Installing redis**
 To test this locally, you need to install Redis in your machine which can be obtained [here](https://redis.io/download)
 
-Once you unpack redis on your local machine, just go to the redis src folder and run.  
+Once you unpack redis on your local machine, just go to the redis folder and run.  
 
 
-    redis-server
+    src/redis-server
 
 You don’t need to worry about configuration as this is only a local test instance, the production one will be using Heroku.  When it runs, it will look like this:
 
@@ -1030,6 +1030,19 @@ You could make that error page look nicer.
 3. The front end was barely worked, you can make it look much nicer if you want.
 4.  Add app icons to the Dropbox page so the authorization looks better.
 5. Probably the most important one will be pagination on the images.  You can call Dropbox specifying a number of items you want back.  Then Dropbox will give you a cursor to iterate.  I thought that adding that will just make this tutorial much longer, so that’s a good task for you if you want to extend it… or maybe I’ll just do it later.
+
+
+#  10.  Try it yourself
+
+🤓 Give it a few minutes since free Heroku instances are dormant by default and need to be restarted when you first hit the link…
+
+https://dbximgs.herokuapp.com/
+
+You can regenerate the session deleting your token using
+https://dbximgs.herokuapp.com/logout
+
+
+
 # Other…
 
 some [dog images](http://www.bing.com/images/search?&q=dogs+images&qft=+filterui:license-L2_L3_L5_L6&FORM=R5IR44) in case they are useful to you 
