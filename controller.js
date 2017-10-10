@@ -60,7 +60,7 @@ module.exports.logout = async (req,res,next)=>{
   try{
 
     await regenerateSessionAsync(req);
-    res.redirect("/");
+    res.redirect("/login");
 
   }catch(error){
     return next(new Error('error logging out. '+error.message));
