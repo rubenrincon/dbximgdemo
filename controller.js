@@ -105,7 +105,7 @@ module.exports.oauthredirect = async (req,res,next)=>{
 
 
 //Returns a promise that fulfills when a new session is created
-async function regenerateSessionAsync(req){
+function regenerateSessionAsync(req){
   return new Promise((resolve,reject)=>{
     req.session.regenerate((err)=>{
       err ? reject(err) : resolve();
