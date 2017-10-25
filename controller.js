@@ -143,7 +143,7 @@ async function listImagePathsAsync(token,path){
 
 
 //Returns an array with temporary links from an array with file paths
-async function getTemporaryLinksForPathsAsync(token,paths){
+function getTemporaryLinksForPathsAsync(token,paths){
 
   var promises = [];
   let options={
