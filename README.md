@@ -149,9 +149,9 @@ Now create the template  /views/gallery.hbs and copy this code
     <html>
     <head>                       
           <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'></script>
-          <script src="galleria/galleria-1.5.7.min.js"></script>
-          <script type='text/javascript' src='javascripts/page.js'></script>
-          <link rel="stylesheet" href="stylesheets/page.css">
+          <script src="/galleria/galleria-1.5.7.min.js"></script>
+          <script type='text/javascript' src='/javascripts/page.js'></script>
+          <link rel="stylesheet" href="/stylesheets/page.css">
     </head>
     <body>
           <div class="galleria">
@@ -167,7 +167,7 @@ You can see in the body part that we iterate through the `imgs` object passed cr
 **public/javascripts/page.js**
 
      jQuery(document).ready(function(){
-          Galleria.loadTheme('galleria/themes/classic/galleria.classic.min.js');
+          Galleria.loadTheme('/galleria/themes/classic/galleria.classic.min.js');
           Galleria.run('.galleria');
     });
 
@@ -253,7 +253,7 @@ The whole authorization flow will have all the following steps which I will expl
 6. User is redirected to the authentication server in Dropbox along with the state and a URL to redirect back to the middleware, in this case we will use the `/oauthredirect` endpoint.
 7. The user will authenticate to Dropbox and authorize this application to read a specific folder.
 8. Dropbox will redirect the user to the `/oauthredirect`  endpoint of the middleware and will pass a code and give us back the state we passed.
-9. The middleware validates that there is an existing session for that state, this is a protection agains CSRF attacks.
+9. The middleware validates that there is an existing session for that state, this is a protection against CSRF attacks.
 10. The middleware makes a POST call to Dropbox to exchange the code for an OAuth token.  In this call, the middleware will pass the application key/secret to Dropbox.
 11. The middleware will save the token along with the session.  
 12. User will be redirected to home `/`  but now the user will have a token to make calls to Dropbox API.
@@ -514,7 +514,7 @@ This is the code you need to add to controllers.js
     
     
     //Returns an array with temporary links from an array with file paths
-    async function getTemporaryLinksForPathsAsync(token,paths){
+    function getTemporaryLinksForPathsAsync(token,paths){
     
       var promises = [];
       let options={
@@ -602,7 +602,7 @@ so run the following commands:
 
     npm install express-sessions express-session redis --save
 
-You need to add a configuration item for the database in the config file
+You need to add a sessionID secret in the config file (This is the secret used to sign the session ID cookie).  Pick your own.
 
 **config.js**
 
@@ -673,12 +673,12 @@ Finally,  we will make 5 changes in the controller: 1 in the login method,  1 in
 **controller.js** regenerateSessionAsync **method**
 
     //Returns a promise that fulfills when a new session is created
-    var regenerateSessionAsync =(req)=>{
-        return new Promise((resolve,reject)=>{
-                req.session.regenerate((err)=>{
-                    err ? reject(err) : resolve();
-            });
+    function regenerateSessionAsync(req){
+      return new Promise((resolve,reject)=>{
+        req.session.regenerate((err)=>{
+          err ? reject(err) : resolve();
         });
+      });
     }
 
 
@@ -895,7 +895,7 @@ In general, there are a set of security measures we can take to protect our app.
 
 **Cookies**
 
-- 💚 Cookies:  disabling scripts to read/write cookies from browser in the session configuration
+- 💚 Cookies:  disabling scripts to read/write cookies from browser in the session configuration.  By default the HttpOnly attribute is set.
 - 💚 Cookies:  enforcing same domain origin (default on the session configuration)
 - 🔴 Cookies:  make sure cookies are transported only via https.  😱 we will fix it later.
 
@@ -930,8 +930,8 @@ And add the following code to the app.js file to set the headers.  Notice that w
     app.use(helmet.contentSecurityPolicy({
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'","https://ajax.googleapis.com/"],
-        styleSrc: ["'self'","'unsafe-inline'"], 
+        scriptSrc: ["'self'","https://ajax.googleapis.com/"],
+        styleSrc: ["'self'"], 
         imgSrc: ["'self'","https://dl.dropboxusercontent.com"],  
         mediaSrc: ["'none'"],  
         frameSrc: ["'none'"]  
@@ -993,7 +993,7 @@ It is important to do the *trust the first proxy* for Heroku as any requests ent
 🎯 The source code at this point can be found in [this link](https://github.com/rubenrincon/dbximgdemo/tree/herokusecure)
 
 
-## checking dependency vulnerabilities
+## Checking dependency vulnerabilities
 
 The great thing about Node.JS is that you usually find a library that does exactly what you want.  But it comes to a great cost, libraries get outdated and then you find yourself in 🔥 *library hell* 🔥 when they have specific vulnerabilities that get patched.  Think about it, you have dependencies that have dependencies and suddenly you have hundreds of dependencies and libraries that might be outdated and vulnerable.
 
@@ -1042,9 +1042,8 @@ You can regenerate the session deleting your token using
 https://dbximgs.herokuapp.com/logout
 
 
+# License
 
-# Other…
-
-some [dog images](http://www.bing.com/images/search?&q=dogs+images&qft=+filterui:license-L2_L3_L5_L6&FORM=R5IR44) in case they are useful to you 
+MIT
 
 
