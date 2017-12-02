@@ -290,6 +290,8 @@ For the steps 1,2 and 3 in the flow above, modify the *home* method in the **con
  
 **controller.js**
 
+'''javascript
+
     const 
     crypto = require('crypto'),
     config = require('./config'),
@@ -324,6 +326,8 @@ For the steps 1,2 and 3 in the flow above, modify the *home* method in the **con
         
         res.redirect(dbxRedirect);
     }
+    
+'''
 
 
 Now we need to list the login endpoint in the **routes/index.js** , so add the following line.
