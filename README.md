@@ -250,7 +250,7 @@ Also we we will not use implicit grant, so you can disable it.
 The whole authorization flow will have all the following steps which I will explain right after.
 
 
-![Whole OAuth code flow](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1506095045521_Screen+Shot+2017-09-22+at+8.43.40+AM.png)
+![Whole OAuth code flow](https://d2mxuefqeaa7sj.cloudfront.net/s_5BE384A0B772773EE7D3916BE412587034AC125EC6921B15EF4FEE7C88E3A55D_1512159552862_Authorization+Code+grant+flow+1.png)
 
 1.  When a user calls the *home* `/` endpoint, the middleware retrieves a session for that specific user.  (we will first use a hardcoded value and a cache, but later we will use a proper library).
 2.  The middleware checks if there is an OAuth token already issued for that session.  In this case, it does not find any, so an authorization sequence is started. 
