@@ -48,17 +48,6 @@ module.exports.login = (req,res,next)=>{
 }
 
 
-module.exports.logout = async (req,res,next)=>{
-  try{
-
-    await regenerateSessionAsync(req);
-    res.redirect("/login");
-
-  }catch(error){
-    return next(new Error('error logging out. '+error.message));
-  }  
-}
-
 
 module.exports.oauthredirect = async (req,res,next)=>{
 
@@ -103,11 +92,47 @@ module.exports.oauthredirect = async (req,res,next)=>{
 }
 
 
-
 //Returns a promise that fulfills when a new session is created
 function regenerateSessionAsync(req){
   return new Promise((resolve,reject)=>{
     req.session.regenerate((err)=>{
+      err ? reject(err) : resolve();
+    });
+  });
+}
+
+
+module.exports.logout = async (req,res,next)=>{
+  try{
+
+    await destroySessionAsync(req);
+    res.redirect("/login");
+
+  }catch(error){
+    return next(new Error('error logging out. '+error.message));
+  }  
+}
+
+//Returns a promise that fulfills when a session is destroyed
+function destroySessionAsync(req){
+  return new Promise(async (resolve,reject)=>{
+
+    try{
+
+    //First ensure token gets revoked in Dropbox.com
+      let options={
+        url: config.DBX_API_DOMAIN + config.DBX_TOKEN_REVOKE_PATH, 
+        headers:{"Authorization":"Bearer "+req.session.token},
+        method: 'POST'
+      }
+      let result = await rp(options);
+
+    }catch(error){
+      reject(new Error('error destroying token. '));
+    }  
+
+    //then destroy the session
+    req.session.destroy((err)=>{
       err ? reject(err) : resolve();
     });
   });
